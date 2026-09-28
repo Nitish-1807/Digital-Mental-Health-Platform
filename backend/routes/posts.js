@@ -5,6 +5,7 @@ import {
   getPostById,
   getMentionCandidates,
   toggleLike,
+  togglePin,
   reportPost,
   deletePost
 } from '../controllers/postController.js';
@@ -23,16 +24,17 @@ router.use(authenticate);
 router.use(enforceCollegeAccess);
 
 // Post routes
-router.post('/', roleCheck(['student']), createPost);
-router.get('/', getPosts);
-router.get('/:id/mention-candidates', getMentionCandidates);
-router.get('/:id', getPostById);
-router.post('/:id/like', toggleLike);
-router.post('/:id/report', reportPost);
+router.post('/', roleCheck(['student', 'counselor']), createPost);
+router.get('/', roleCheck(['student', 'counselor', 'admin']), getPosts);
+router.get('/:id/mention-candidates', roleCheck(['student', 'counselor']), getMentionCandidates);
+router.get('/:id', roleCheck(['student', 'counselor', 'admin']), getPostById);
+router.post('/:id/like', roleCheck(['student', 'counselor']), toggleLike);
+router.post('/:id/pin', roleCheck(['student', 'counselor', 'admin']), togglePin);
+router.post('/:id/report', roleCheck(['student', 'counselor']), reportPost);
 router.delete('/:id', roleCheck(['admin']), deletePost);
 
 // Comment routes
-router.post('/:postId/comments', createComment);
-router.delete('/comments/:id', deleteComment);
+router.post('/:postId/comments', roleCheck(['student', 'counselor']), createComment);
+router.delete('/comments/:id', roleCheck(['student', 'admin', 'counselor']), deleteComment);
 
 export default router;

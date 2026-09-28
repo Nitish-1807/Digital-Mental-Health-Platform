@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -44,6 +44,7 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
+  googleLogin: (credential) => api.post('/auth/google', { token: credential }),
   getProfile: () => api.get('/auth/profile'),
   logout: () => api.post('/auth/logout')
 };
@@ -70,14 +71,24 @@ export const resourcesAPI = {
 
 // Posts API
 export const postsAPI = {
-  getAll: () => api.get('/posts'),
+  getAll: (groupId) => api.get('/posts', { params: { groupId } }),
   getById: (id) => api.get(`/posts/${id}`),
   getMentionCandidates: (postId) => api.get(`/posts/${postId}/mention-candidates`),
   create: (data) => api.post('/posts', data),
   toggleLike: (id) => api.post(`/posts/${id}/like`),
+  togglePin: (id) => api.post(`/posts/${id}/pin`),
   report: (id, reason) => api.post(`/posts/${id}/report`, { reason }),
-  delete: (id) => api.delete(`/posts/${id}`),
-  addComment: (id, content) => api.post(`/posts/${id}/comments`, { content })
+  delete: (id) => api.delete(`/posts/${id}`)
+};
+
+// Community Groups API
+export const communityGroupsAPI = {
+  getAll: (params) => api.get('/community-groups', { params }),
+  getById: (id) => api.get(`/community-groups/${id}`),
+  join: (id) => api.post(`/community-groups/${id}/join`),
+  leave: (id) => api.post(`/community-groups/${id}/leave`),
+  create: (data) => api.post('/community-groups', data),
+  update: (id, data) => api.put(`/community-groups/${id}`, data)
 };
 
 // Comments API

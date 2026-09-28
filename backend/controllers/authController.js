@@ -5,6 +5,12 @@ import {
   generateSessionToken,
   hashSessionToken
 } from '../services/sessionService.js';
+import { OAuth2Client } from 'google-auth-library';
+import crypto from 'crypto';
+
+const client = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_ID !== 'dummy'
+  ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+  : null;
 
 const createSession = async (user) => {
   const token = generateSessionToken();
@@ -140,6 +146,72 @@ export const login = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Google Login
+ */
+export const googleLogin = async (req, res, next) => {
+  try {
+    if (!client || !process.env.GOOGLE_CLIENT_ID) {
+      return res.status(503).json({
+        message: 'Google sign-in is not configured. Set GOOGLE_CLIENT_ID on the server and VITE_GOOGLE_CLIENT_ID on the frontend.'
+      });
+    }
+
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ message: 'Token is required' });
+
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+      payload = ticket.getPayload();
+    } catch {
+      return res.status(401).json({ message: 'Invalid Google token' });
+    }
+
+    if (!payload?.email) {
+      return res.status(401).json({ message: 'Google account email is required' });
+    }
+
+    const email = payload.email.toLowerCase();
+    const name = payload.name || email.split('@')[0];
+
+    // Find or create user
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const college = await getOrCreateDefaultCollege();
+      // Generate a random password since they logged in with Google
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        role: 'student', // Default role for Google signup
+        collegeId: college._id,
+        alias: name.split(' ')[0]
+      });
+    } else if (!user.isActive) {
+      return res.status(401).json({ message: 'Account is deactivated.' });
+    }
+
+    const hydratedUser = await User.findById(user._id).populate('collegeId', 'name code');
+    const sessionToken = await createSession(hydratedUser);
+
+    res.json({
+      message: 'Google login successful',
+      token: sessionToken,
+      user: serializeUser(hydratedUser)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 /**
  * Get current user profile

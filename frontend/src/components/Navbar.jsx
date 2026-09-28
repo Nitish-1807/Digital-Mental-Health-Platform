@@ -42,6 +42,9 @@ export default function Navbar() {
                 <Link to="/dashboard" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   Dashboard
                 </Link>
+                <Link to="/community" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                  Community
+                </Link>
                 <Link to="/schedule" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   My Schedule
                 </Link>
@@ -60,6 +63,9 @@ export default function Navbar() {
                 <Link to="/dashboard" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   Home
                 </Link>
+                <Link to="/community" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                  Community
+                </Link>
                 <Link to="/schedule" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   My Schedule
                 </Link>
@@ -75,8 +81,14 @@ export default function Navbar() {
             {/* Admin nav */}
             {user?.role === 'admin' && (
               <>
+                <Link to="/dashboard" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                  Dashboard
+                </Link>
                 <Link to="/admin" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   System Mgmt
+                </Link>
+                <Link to="/community" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
+                  Community
                 </Link>
                 <Link to="/manage-resources" className="px-4 py-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all">
                   Resources

@@ -1,459 +1,158 @@
-# Mental Health Support Platform
+# Digital Mental Health Platform
 
-A production-ready multi-tenant Mental Health Support Platform built with the MERN stack. This platform provides stigma-free mental health tracking, personalized resources, community support, AI-powered chatbot assistance, and counseling booking services for multiple colleges.
+A multi-tenant peer support and clinical platform designed for educational institutions. The platform bridges the gap between students, peer-support communities, and clinical counselors by providing a safe, structured space for mental wellbeing.
 
-Featuring a modern **Tailwind frosted-glass (glassmorphism)** aesthetic, the platform abstracts rigid clinical exams into a warm, user-friendly experience while maintaining rigorous backend safety protocols.
+## Features
 
-## 🚀 Features
+**Currently Implemented:**
+- **Multi-Tenant Architecture:** Secure isolation between different colleges. Students only interact with peers and counselors from their own institution.
+- **Role-Based Access Control:** Distinct roles for Students, Counselors, and System Admins.
+- **Structured Community Groups:** Students can discover, join, and create specific support groups (e.g., "Exam Stress", "LGBTQ+ Support"). Supports private groups, moderation, community guidelines, and real-time joining.
+- **Trigger Warnings & Content Cloaking:** Posts can be marked with trigger warnings, requiring explicit user consent to reveal the content.
+- **Anonymous Posting:** Students can toggle an anonymous mode that hides their real name in discussions while still maintaining auditability for admins.
+- **AI Risk Detection:** Automated content scanning (via Groq/LLaMA3) that intercepts and flags high-risk or crisis-related keywords.
+- **Counselor Scheduling & Video Meetings:** Students can book 1:1 sessions with verified counselors and join via in-app WebRTC video conferencing.
+- **Clinical Check-Ins:** Structured onboarding assessments and regular mental health check-ins (PHQ-9/GAD-7 formats) providing actionable analytics for counselors.
+- **Real-Time Notifications:** In-app notifications for mentions, appointment updates, and community activity.
+- **Admin Dashboard:** Full system overview for managing resources, reviewing flagged content, and moderating users.
 
-### Core Features
-- **Stigma-Free Onboarding & Check-Ins**: A progressive-disclosure wellness wizard that feels conversational but accurately maps to clinical PHQ-9, GAD-7, and PSS scales under the hood.
-- **Interactive Progress Dashboard**: Visualized wellbeing trends using `recharts` area graphs, translating raw clinical scores into friendly, color-coded health labels.
-- **Multi-Tenant Architecture**: College-based data isolation
-- **Role-Based Access Control**: Tailored dashboards for Student, Counselor, and Admin roles
-- **Authentication**: Secure bcrypt-backed password authentication with server-side session tokens
-- **Smart Resource Hub**: AI-driven media recommendations dynamically sorted based on the user's latest check-in severities (powered by OpenAI). Features interactive, animated Breathing and Grounding exercise widgets. Counselors and Admins share a dedicated, grid-based Resource Management Hub.
-- **Community Forum**: Anonymous posting, nested comment threads (up to depth 3) with `@mentions`, and moderation.
-- **AI Chatbot**: **Groq-powered (Llama 3.3)** mental health support utilizing structured JSON responses, real-time risk detection, session intensity tracking, and interactive therapeutic widgets rendered directly in the chat.
-- **Counseling Booking**: Schedule and manage counseling sessions
-- **Actionable Admin Dashboard**: Native tools to "Force Delete" flagged posts, dismiss false reports, and mark high-risk AI chat sessions as "Resolved" after intervention.
-- **Stability & Polish**: React Error Boundaries, Disclaimer Consent Modals, Mobile-responsive UI, and robust `prefers-reduced-motion` accessibility support.
+**Planned/Future Features:**
+- AI Chatbot for 24/7 CBT-based coping strategies (currently placeholder).
+- Parent/Guardian portal.
+- Advanced institution-wide analytics.
 
-### Security & Safety Features
-- **Automated Crisis Safety Triggers**: Backend isolates self-harm indicators (e.g., PHQ-9 Q9) and automatically flags `needsIntervention` to alert Counselors/Admins. Chatbot sessions automatically deploy a pulsing `CrisisInterventionBanner` when acute risk is detected.
-- Password hashing with bcrypt
-- Opaque session token authentication with server-side expiry
-- Multi-tenant data isolation with strict enforcement
-- Input validation and sanitization (express-validator)
-- Rate limiting on all endpoints (helmet, express-rate-limit)
-- Request logging (morgan)
-- Atomic booking operations (MongoDB transactions)
-- First-user auto admin assignment
+## Tech Stack
 
-## 📋 Prerequisites
+- **Frontend:** React 18, Vite, Tailwind CSS, React Router, Recharts, Framer Motion, `@react-oauth/google`
+- **Backend:** Node.js, Express.js, Mongoose, Socket.io
+- **Database:** MongoDB
+- **Authentication:** Custom JWT-based auth + Google OAuth (via `google-auth-library`)
+- **AI Services:** Groq SDK (LLaMA3 8b) for rapid crisis scanning
+- **Real-Time Communication:** WebRTC (peer-to-peer video) & Socket.io (signaling and notifications)
 
-- Node.js (v16 or higher)
-- MongoDB (v5 or higher)
-- npm or yarn
-- **Groq API key** (Optional but recommended - platform falls back to mock JSON responses if not provided)
-
-## 🛠️ Installation
-
-### Backend Setup
-
-1. Navigate to the backend directory:
-```bash
-cd backend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file in the backend directory:
-```bash
-cp .env.example .env
-```
-
-4. Update the `.env` file with your configuration:
-```env
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/mental-health-platform
-GROQ_API_KEY=your-groq-api-key-here
-FRONTEND_URL=http://localhost:5173
-```
-
-5. Start MongoDB (if not running):
-```bash
-# On macOS/Linux
-mongod
-
-# On Windows
-# Start MongoDB service from Services panel or use MongoDB Compass
-```
-
-6. **Seed the database**:
-```bash
-node seed.js
-```
-*Note: This script creates the default college, default admin user, and seeds 35 expertly curated mental health resources tagged for the AI hub. (Clinical questionnaires are no longer seeded as they are handled dynamically on the frontend).*
-
-**Default Admin Credentials:**
-- Email: `admin@default.com`
-- Password: `admin123`
-- ⚠️ **Change this password after first login!**
-
-7. Start the backend server:
-```bash
-npm run dev
-```
-
-The backend will run on `http://localhost:5000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd frontend
-```
-
-2. Install dependencies (Note: `--legacy-peer-deps` is required to safely bypass Vite/React strict versioning for the charting libraries):
-```bash
-npm install --legacy-peer-deps
-```
-
-3. Create a `.env` file in the frontend directory:
-```bash
-cp .env.example .env
-```
-
-4. Update the `.env` file:
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
-5. Start the development server:
-```bash
-npm run dev
-```
-
-The frontend will run on `http://localhost:5173`
-
-## 🗄️ Database Setup
-
-The database is automatically provisioned and securely populated when you run `node seed.js`. This creates:
-- A default college (code: DEFAULT)
-- A default admin user (email: admin@default.com, password: admin123)
-- 20+ Highly Curated clinical articles, videos, and crisis lines tagged for AI integration.
-
-**No manual database editing required!**
-
-### First-User Auto Admin Logic
-
-If you do not run the seed script, the first user to register will automatically become an admin. However, failing to run the seed script means you will not have any clinical resources available. It is highly recommended to run `node seed.js`.
-
-### Creating Additional Colleges
-
-After logging in as admin:
-1. Go to Admin Panel
-2. Use the API endpoint: `POST /api/colleges` (requires admin role)
-3. Or use MongoDB Compass/Shell if preferred
-
-## 📁 Project Structure
+## Project Structure
 
 ```text
-mental-health-platform/
 ├── backend/
-│   ├── config/
-│   │   └── database.js
-│   ├── controllers/
-│   │   ├── adminController.js
-│   │   ├── assessmentController.js
-│   │   ├── authController.js
-│   │   ├── bookingController.js
-│   │   ├── chatController.js
-│   │   ├── collegeController.js
-│   │   ├── commentController.js
-│   │   ├── postController.js
-│   │   └── resourceController.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   ├── errorHandler.js
-│   │   └── roleCheck.js
-│   ├── models/
-│   │   ├── Booking.js
-│   │   ├── ChatSession.js (Includes sessionIntensity & tool tracking)
-│   │   ├── College.js
-│   │   ├── Comment.js (Supports parentCommentId & mentions)
-│   │   ├── Message.js
-│   │   ├── Post.js
-│   │   ├── Report.js
-│   │   ├── Resource.js
-│   │   ├── User.js (Includes needsIntervention and onboarding flags)
-│   │   └── UserResult.js (Supports granular sub-scores)
-│   ├── routes/
-│   │   ├── admin.js
-│   │   ├── assessments.js
-│   │   ├── auth.js
-│   │   ├── connect.js
-│   │   ├── chat.js
-│   │   ├── colleges.js
-│   │   ├── notification.js
-│   │   ├── posts.js
-│   │   ├── resources.js
-│   │   └── video.js
-│   ├── services/
-│   │   ├── aiService.js (Groq Llama-3 integration)
-│   │   └── riskDetection.js
-│   ├── .env.example
-│   ├── package.json
-│   └── server.js
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── CrisisInterventionBanner.jsx
-│   │   │   ├── DisclaimerModal.jsx
-│   │   │   ├── ErrorBoundary.jsx
-│   │   │   ├── ExerciseWidgets.jsx
-│   │   │   ├── ManageResources.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── ProtectedRoute.jsx
-│   │   ├── constants/
-│   │   │   └── crisisLines.js
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── data/
-│   │   │   └── onboardingFlow.js
-│   │   ├── pages/
-│   │   │   ├── AdminPanel.jsx
-│   │   │   ├── Assessment.jsx
-│   │   │   ├── AssessmentHome.jsx
-│   │   │   ├── Chatbot.jsx
-│   │   │   ├── CheckIn.jsx
-│   │   │   ├── Community.jsx
-│   │   │   ├── Connect.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── JoinLobby.jsx
-│   │   │   ├── Landing.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Onboarding.jsx
-│   │   │   ├── Progress.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Resources.jsx
-│   │   │   ├── ResultsHistory.jsx
-│   │   │   ├── Schedule.jsx
-│   │   │   └── VideoMeet.jsx
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.jsx
-│   │   ├── index.css
-│   │   └── main.jsx
-│   ├── .env.example
-│   ├── index.html
-│   ├── package.json
-│   ├── postcss.config.js
-│   ├── tailwind.config.js
-│   └── vite.config.js
-├── .gitignore
-└── README.md
+│   ├── controllers/      # Request handlers & business logic
+│   ├── middleware/       # Auth (JWT & Role checking), Security (Helmet/Limiting)
+│   ├── models/           # Mongoose schemas (User, Post, CommunityGroup, etc.)
+│   ├── routes/           # Express API endpoints
+│   ├── scripts/          # Database seeding scripts (e.g. seed.js)
+│   ├── services/         # External integrations (Groq AI, Socket.io)
+│   └── server.js         # Backend entry point
+│
+└── frontend/
+    ├── src/
+    │   ├── components/   # Reusable UI elements (Navbar, Cards, Modals)
+    │   ├── context/      # React Context (AuthContext)
+    │   ├── pages/        # Main route views (Dashboard, Community, VideoMeet)
+    │   ├── services/     # API Axios configurations and endpoints
+    │   └── utils/        # Helper functions
+    ├── package.json      # Vite configuration & dependencies
+    └── tailwind.config.js# Design system tokens and styling
 ```
 
-## 🔑 API Endpoints
+## Prerequisites
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/profile` - Get current user profile
+- **Node.js**: v18+ or v20+ recommended
+- **npm**: v9+ or v10+
+- **MongoDB**: A running local instance (`mongodb://localhost:27017`) or MongoDB Atlas URI
 
-### Colleges
-- `GET /api/colleges` - Get all colleges
-- `GET /api/colleges/:id` - Get college by ID
-- `POST /api/colleges` - Create college (Admin only)
+## Environment Variables
 
-### Resources
-- `GET /api/resources` - Get all resources (filtered by college)
-- `GET /api/resources/:id` - Get resource by ID
-- `POST /api/resources` - Create resource (Admin/Counselor only)
-- `PUT /api/resources/:id` - Update resource (Admin/Counselor only)
-- `DELETE /api/resources/:id` - Delete resource (Admin/Counselor only)
+The project requires environment variables for both the backend and frontend. You must create a `.env` file in **both** directories using the provided `.env.example` files as templates.
 
-### Posts
-- `GET /api/posts` - Get all posts (filtered by college)
-- `GET /api/posts/:id` - Get post with nested comment tree
-- `GET /api/posts/:id/mention-candidates` - Get list of users available to @mention
-- `POST /api/posts` - Create post (Student only)
-- `POST /api/posts/:id/like` - Like/unlike post
-- `POST /api/posts/:id/report` - Report post
+### Backend (`backend/.env`)
+- `PORT`: (Optional) Defaults to 5000.
+- `MONGODB_URI`: (Required) Connection string for MongoDB.
+- `JWT_SECRET`: (Required) A secure random string for signing auth tokens.
+- `GROQ_API_KEY`: (Required) API key for the Groq platform to run the LLaMA3 risk detection.
+- `FRONTEND_URL`: (Optional) Used for CORS configuration. Defaults to `http://localhost:5173`.
+- `GOOGLE_CLIENT_ID`: (Optional) The Web Client ID from Google Cloud Console if you wish to enable Google Login.
 
-### Comments
-- `POST /api/posts/:postId/comments` - Create comment (supports `parentCommentId` and `mentions`)
-- `DELETE /api/posts/comments/:id` - Delete comment
+### Frontend (`frontend/.env`)
+- `VITE_API_URL`: (Optional) Defaults to `http://localhost:5000/api`.
+- `VITE_GOOGLE_CLIENT_ID`: (Optional) Must match the backend's Client ID to render the Google Login buttons.
 
-### Chat
-- `GET /api/chat/session` - Get or create chat session (Student only)
-- `POST /api/chat/message` - Send message to chatbot (Student only)
-- `POST /api/chat/session/:sessionId/close` - Close session (Student only)
-- `GET /api/chat/history` - Get chat history (Student only)
+> ⚠️ **SECURITY WARNING:** Never commit your actual `.env` files or hardcode API keys/secrets into the repository. The `.gitignore` is already configured to prevent `.env` files from being tracked.
 
-### Assessments
-- `POST /api/assessments/submit-flow` - Submit wellbeing check-in (calculates hidden clinical scores & safety triggers)
-- `GET /api/assessments/results` - Get user's assessment history
+## Installation
 
-### Connect & Bookings
-- `POST /api/connect/book` - Book counseling session (Student only)
-- `GET /api/connect/student` - Get student bookings
-- `GET /api/connect/counselors` - Get list of counselors (Student only)
-- `GET /api/connect/counselors/:counselorId/availability` - Get counselor available slots (Student only)
-- `POST /api/connect/availability` - Set availability (Counselor only)
-- `GET /api/connect/counselor` - Get counselor bookings
-- `PUT /api/connect/:bookingId/status` - Update booking status (Counselor only)
-- `DELETE /api/connect/:bookingId` - Delete a booking slot (Counselor only)
-- `GET /api/connect/insights/:studentId` - Get student insights (Counselor only)
-
-### Video Activity
-- `POST /api/video/history` - Add a video to user history
-- `GET /api/video/history` - Get user video history
-
-### Notifications
-- `GET /api/notifications` - Get user notifications
-- `PUT /api/notifications/:id/read` - Mark a notification as read
-- `POST /api/notifications/mark-all-read` - Mark all notifications as read
-
-### Admin & Moderation
-- `GET /api/admin/users` - Get all users (Admin only)
-- `PUT /api/admin/users/:userId/status` - Update user status (Admin only)
-- `GET /api/admin/posts/flagged` - Get flagged posts (Admin only)
-- `PUT /api/admin/posts/:id/resolve` - Dismiss or delete flagged community content (Admin only)
-- `GET /api/admin/chat/flagged` - Get flagged chat sessions (Admin only)
-- `PUT /api/admin/chat/:sessionId/resolve` - Mark severe risk sessions as intervened/safe (Admin only)
-- `GET /api/admin/stats` - Get dashboard statistics (Admin only)
-
-## 🎯 Usage Guide
-
-### For Students
-1. **Onboarding:** Upon first login, complete the interactive Wellbeing Wizard to personalize your space.
-2. **Dashboard:** View AI-recommended resources tailored to your specific stress and mood levels.
-3. **Progress:** Visit the *My Progress* tab to view beautiful area charts tracking your mental health journey over time.
-4. **Routine:** Take routine *Check-Ins* to update your stats and refresh your resource recommendations.
-5. **Support:** Participate in the anonymous Community forum with threaded replies, use the Groq AI Chatbot, or book a counseling session.
-
-### For Counselors
-1. Log in to access the dedicated Counselor Dashboard.
-2. Manage student appointments via *Bookings & Schedule*.
-3. Use the shared *Manage Resources* hub to securely upload and tag new articles or videos for students.
-
-### For Admins
-1. Monitor platform health via the glassmorphic Admin Panel.
-2. Review pulsing radar alerts for flagged posts or high-risk AI chat sessions.
-3. Take immediate action to delete toxic posts or mark crisis sessions as "Resolved".
-4. Manage users and colleges.
-
-## 🔒 Security Considerations
-
-- **Never commit `.env` files** - They contain sensitive information
-- Rotate session credentials and API keys in production
-- **Use HTTPS** in production
-- **Implement rate limiting** on all endpoints
-- **Validate all inputs** on both frontend and backend
-- **Use environment variables** for all configuration
-- **Regular security audits** recommended
-
-## 🧪 Testing
-
-To test the platform:
-
-1. Start both backend and frontend servers
-2. Register a new user (student or counselor)
-3. Create a college (as admin) or use existing one
-4. Test each feature:
-   - Complete the onboarding flow
-   - Browse resources and verify AI recommendations
-   - Create posts, use @mentions in nested comments
-   - Trigger a safety alert via the chatbot or Check-In to test Admin moderation
-   - Check the new interactive Breathing/Grounding tools in the chatbot
-   - Book counseling sessions
-   - Admin functions (Resolve flags, dismiss posts)
-
-## 🚀 Quick Start Guide
-
-### Complete Setup Sequence
-
-1. **Install dependencies:**
+1. **Clone the repository:**
    ```bash
-   cd backend && npm install
-   cd ../frontend && npm install --legacy-peer-deps
+   git clone <your-repo-url>
+   cd Digital-Mental-Health-Platform
    ```
 
-2. **Configure environment:**
-   - Copy `.env.example` to `.env` in both backend and frontend
-   - Update MongoDB URI and API keys.
-
-3. **Start MongoDB:**
-   ```bash
-   mongod
-   ```
-
-4. **Seed database:**
+2. **Install Backend Dependencies:**
    ```bash
    cd backend
-   node seed.js
+   npm install
    ```
 
-5. **Start backend:**
+3. **Install Frontend Dependencies:**
    ```bash
-   npm run dev
+   cd ../frontend
+   npm install
    ```
 
-6. **Start frontend** (new terminal):
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+## Database Setup
 
-7. **Access application:**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000/api
-   - Health Check: http://localhost:5000/api/health
+Make sure your MongoDB server is running. Then, populate the database with the initial required data (such as the default college, an admin account, mock resources, and community groups):
 
-8. **Login as admin:**
-   - Email: `admin@default.com`
-   - Password: `admin123`
-
-## 🚀 Deployment
-
-### Backend Deployment
-1. Set `NODE_ENV=production` in `.env`
-2. Update `MONGODB_URI` to production database
-3. Use secure, rotating server credentials and API keys
-4. Run `npm run seed` on production (or ensure admin exists)
-5. Deploy to platforms like Heroku, Railway, or AWS
-
-### Frontend Deployment
-1. Build the frontend: `npm run build`
-2. Deploy the `dist` folder to Vercel, Netlify, or similar
-3. Update `VITE_API_URL` to production backend URL
-
-## 📝 Notes
-
-- The chatbot uses the Groq API if `GROQ_API_KEY` is provided, otherwise uses mock JSON responses
-- Risk detection scans for crisis keywords and calculates risk scores
-- All data is isolated by `collegeId` for multi-tenant security
-- Anonymous posts/comments store user ID but display alias/name based on `isAnonymous` flag
-
-## ✅ Recent Major Updates
-- **Three-Objective Refactor:** Migrated the AI Chatbot to **Llama 3.3 (via Groq)** utilizing strictly structured JSON outputs. Introduced **nested comment threads with @mentions** in the community forum. Developed **reusable, animated clinical exercise widgets** (Breathing & Grounding) shared seamlessly between the AI Chatbot and Resource Hub.
-- **Stigma-Free Redesign:** Ripped out legacy clinical testing forms. Replaced with a warm, progressive-disclosure onboarding flow that seamlessly maps to clinical scales (PHQ-9, GAD-7, PSS).
-- **Visual Analytics:** Integrated `recharts` to build a premium user progress dashboard mapping wellbeing trends.
-- **Safety First:** Added the `needsIntervention` database trigger to instantly flag accounts showing self-harm indicators during check-ins.
-- **Counselor Empowerment:** Counselors now have full CRUD access to the Resource Library via a standalone UI component alongside Admin users.
-- **Actionable Moderation:** Upgraded the Admin panel from simple viewing to active state-management (Force Delete, Dismiss, Resolve).
-- **Unified Glassmorphic UI:** Standardized the entire platform using Tailwind frosted glass, vibrant gradients, micro-animations, and seamless responsiveness.
-- **Refactoring to ES Modules:** Entire backend controllers, models, routes, and `seed.js` script successfully migrated to pure ES modules using modern middleware architecture.
-
-## 🤝 Contributing
-
-This is a production-ready template. Feel free to extend it with:
-- Email notifications
-- File uploads for resources
-- Video conferencing integration
-- Advanced analytics
-- Mobile app version
-
-## 📄 License
-
-This project is provided as-is for educational and production use.
-
-## 🆘 Support
-
-For issues or questions:
-1. Check the API endpoints documentation above
-2. Review the code comments
-3. Check MongoDB connection and environment variables
-4. Review server logs for errors
-
----
-
-**Built with ❤️ using MERN Stack**
+```bash
+cd backend
+npm run seed:all
 ```
+
+This will create a default administrator account:
+- **Email:** `admin@default.com`
+- **Password:** `admin123`
+
+*(Note: Change this immediately in a production environment!)*
+
+## Running the Project
+
+You must start both the backend and frontend development servers. 
+
+**Terminal 1 (Backend):**
+```bash
+cd backend
+npm run dev
+```
+*Runs the Express server with Nodemon on port 5000.*
+
+**Terminal 2 (Frontend):**
+```bash
+cd frontend
+npm run dev
+```
+*Runs the Vite React application on port 5173.*
+
+Access the platform at `http://localhost:5173`.
+
+## Google Authentication
+
+To enable "Continue with Google":
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create OAuth 2.0 Client IDs (Web application).
+3. Add `http://localhost:5173` to the Authorized JavaScript origins.
+4. Copy the Client ID and paste it into both `backend/.env` (`GOOGLE_CLIENT_ID`) and `frontend/.env` (`VITE_GOOGLE_CLIENT_ID`).
+
+If these variables are omitted, the platform will gracefully hide the Google login buttons and rely solely on standard email/password authentication.
+
+## Security Notes
+
+- **Multi-Tenant Data:** The `enforceCollegeAccess` middleware guarantees that database queries are automatically scoped by `collegeId` so users cannot query information belonging to another institution.
+- **Risk Detection:** The Groq AI risk scanner runs strictly on the backend so API keys are never exposed to the client.
+- **Passwords:** All passwords are mathematically hashed with bcrypt prior to database storage.
+
+## Known Limitations
+
+- The **AI Chatbot** page is currently a frontend placeholder. Integrating the actual conversational agent logic is a planned future milestone.
+- **Video Conferencing** relies on basic WebRTC and a custom signaling server via Socket.io. It may not reliably bypass strict enterprise NAT/Firewalls since TURN server configuration is not yet implemented.
+
+## License
+
+This project currently has no associated license. All rights are reserved until an open-source license (such as MIT or Apache 2.0) is officially applied.

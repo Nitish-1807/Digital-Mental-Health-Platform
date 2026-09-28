@@ -1,12 +1,16 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, enforceCollegeAccess } from '../middleware/auth.js';
+import { roleCheck } from '../middleware/roleCheck.js';
 import { getResults, saveResult, submitFlow, deleteResult } from '../controllers/assessmentController.js';
 
 const router = express.Router();
 
-router.get('/results',       authenticate, getResults);
-router.post('/results',      authenticate, saveResult);
-router.post('/submit-flow',  authenticate, submitFlow);
-router.delete('/results/:id', authenticate, deleteResult);
+router.use(authenticate);
+router.use(enforceCollegeAccess);
+
+router.get('/results',       roleCheck(['student']), getResults);
+router.post('/results',      roleCheck(['student']), saveResult);
+router.post('/submit-flow',  roleCheck(['student']), submitFlow);
+router.delete('/results/:id', roleCheck(['student']), deleteResult);
 
 export default router;

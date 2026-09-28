@@ -1,6 +1,7 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
 import User from '../models/User.js';
+import { requireGroupMembership } from '../utils/groupAccess.js';
 
 /**
  * Create comment on post
@@ -22,6 +23,11 @@ export const createComment = async (req, res, next) => {
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const access = await requireGroupMembership(req.user, post.groupId);
+    if (!access.ok) {
+      return res.status(403).json({ message: 'Join this group before commenting.' });
     }
 
     let parentId = null;

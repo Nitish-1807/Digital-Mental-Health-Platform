@@ -1,15 +1,28 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+
+import { getGoogleClientId } from '../utils/googleAuth';
+
+const GOOGLE_CLIENT_ID = getGoogleClientId();
+const hasGoogleAuth = Boolean(GOOGLE_CLIENT_ID);
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const navigateBasedOnRole = (user) => {
+    const { role, hasCompletedOnboarding } = user;
+    if (role === 'admin') navigate('/dashboard');
+    else if (role === 'student' && !hasCompletedOnboarding) navigate('/onboarding');
+    else navigate('/dashboard');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,65 +30,91 @@ const Login = () => {
     setLoading(true);
     const result = await login(formData.email, formData.password);
     if (result.success) {
-      const { role, hasCompletedOnboarding } = result.user;
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'student' && !hasCompletedOnboarding) navigate('/onboarding');
-      else navigate('/dashboard');
+      navigateBasedOnRole(result.user);
     } else {
       setError(result.message || 'The credentials provided do not match our records.');
     }
     setLoading(false);
   };
 
-  return (
-    <div className="min-h-screen bg-[#fcfdfe] flex items-center justify-center p-6 selection:bg-indigo-100">
-      
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none opacity-20">
-         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-200 rounded-full blur-[100px] -mr-48 -mt-48" />
-         <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-100 rounded-full blur-[100px] -ml-48 -mb-48" />
-      </div>
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    setLoading(true);
+    const result = await googleLogin(credentialResponse.credential);
+    if (result.success) {
+      navigateBasedOnRole(result.user);
+    } else {
+      setError(result.message || 'Google authentication failed.');
+    }
+    setLoading(false);
+  };
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Brand */}
-        <div className="text-center mb-12">
-          <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-2xl mx-auto mb-6 shadow-2xl shadow-indigo-100 rotate-3 hover:rotate-0 transition-transform duration-500">
-            <span className="text-white">🌿</span>
-          </div>
-          <h1 className="text-5xl font-black text-slate-900 tracking-tighter mb-1">MindSpace</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Clinical Support Access</p>
+  const GoogleSection = () => {
+    if (!hasGoogleAuth) return null;
+    return (
+      <>
+        <div className="mb-8 flex justify-center">
+           <GoogleLogin
+             onSuccess={handleGoogleSuccess}
+             onError={() => setError('Google sign-in failed. Please try again.')}
+             size="large"
+             width="380"
+             theme="filled_black"
+             shape="pill"
+             text="signin_with"
+           />
         </div>
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-1 h-px bg-slate-100" />
+          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">or sign in with email</span>
+          <div className="flex-1 h-px bg-slate-100" />
+        </div>
+      </>
+    );
+  };
 
-        {/* Auth Panel */}
-        <div className="glass-panel !rounded-[3rem] p-10 lg:p-12 shadow-2xl border-none">
-          <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tight text-center">Welcome back.</h2>
+  const content = (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-8">
+      <div className="max-w-6xl w-full bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[800px]">
+        
+        {/* Left Panel: Form */}
+        <div className="w-full md:w-1/2 p-10 md:p-16 lg:p-24 flex flex-col justify-center relative bg-white z-10">
+          <div className="mb-12">
+             <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-2xl mb-8 shadow-xl shadow-indigo-200">
+               <span className="text-white">🌿</span>
+             </div>
+             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter mb-4">Welcome back</h1>
+             <p className="text-slate-500 text-lg font-medium">Please enter your details to sign in.</p>
+          </div>
           
           {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-500 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center mb-8">
+            <div className="bg-rose-50 border border-rose-100 text-rose-600 px-6 py-4 rounded-2xl text-sm font-bold mb-8">
               {error}
             </div>
           )}
 
+          <GoogleSection />
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-widest text-slate-300 mb-3">
-                Email Identity
+              <label htmlFor="email" className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                Email
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 required
-                placeholder="you@college.edu"
+                placeholder="name@college.edu"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full p-4 rounded-2xl bg-slate-50 border-none text-slate-900 font-black tracking-tight placeholder:text-slate-200 focus:ring-8 ring-indigo-50 transition-all outline-none"
+                className="w-full px-6 py-5 rounded-3xl bg-slate-50 border border-slate-100 text-slate-900 font-bold tracking-tight placeholder:text-slate-300 focus:ring-4 ring-indigo-50 focus:border-indigo-100 transition-all outline-none"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-[10px] font-black uppercase tracking-widest text-slate-300 mb-3">
-                Security Key
+              <label htmlFor="password" className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                Password
               </label>
               <input
                 id="password"
@@ -85,42 +124,74 @@ const Login = () => {
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full p-4 rounded-2xl bg-slate-50 border-none text-slate-900 font-black tracking-tight placeholder:text-slate-200 focus:ring-8 ring-indigo-50 transition-all outline-none"
+                className="w-full px-6 py-5 rounded-3xl bg-slate-50 border border-slate-100 text-slate-900 font-bold tracking-tight placeholder:text-slate-300 focus:ring-4 ring-indigo-50 focus:border-indigo-100 transition-all outline-none"
               />
+            </div>
+
+            <div className="flex items-center justify-between px-1">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                 <input type="checkbox" className="w-5 h-5 rounded-md border-slate-200 text-indigo-600 focus:ring-indigo-500" />
+                 <span className="text-sm font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">Remember me</span>
+              </label>
+              <a href="#" className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Forgot password?</a>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl transition-all duration-500 ${loading
-                ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                : 'bg-indigo-600 text-white shadow-indigo-100 hover:bg-indigo-500 hover:-translate-y-1'
+              className={`w-full py-5 rounded-3xl font-black text-sm uppercase tracking-widest shadow-xl transition-all duration-300 mt-4 ${loading
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                : 'bg-indigo-600 text-white shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5'
               }`}
             >
-              {loading ? 'Validating...' : 'Enter Hub →'}
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="flex items-center gap-4 my-10">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-[10px] text-slate-200 font-black uppercase tracking-widest">or</span>
-            <div className="flex-1 h-px bg-slate-100" />
-          </div>
-
-          <p className="text-center font-black text-[10px] uppercase tracking-widest text-slate-400">
-            New to the network?{' '}
-            <Link to="/register" className="text-indigo-600 hover:text-indigo-400 border-b-2 border-indigo-50 transition-all pb-0.5">
-              Create credentials
+          <p className="text-center font-bold text-slate-500 mt-12">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-indigo-600 hover:text-indigo-800 transition-colors">
+              Sign up
             </Link>
           </p>
         </div>
 
-        <p className="text-center text-[10px] font-black uppercase tracking-[0.4em] text-slate-200 mt-16 leading-relaxed">
-          MindSpace Clinical Protocol <br /> Secured by Campus Cryptography
-        </p>
+        {/* Right Panel: Artwork */}
+        <div className="hidden md:flex md:w-1/2 bg-slate-900 relative p-12 overflow-hidden flex-col justify-between">
+           <div className="absolute inset-0 z-0">
+              <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-500/20 rounded-full blur-[120px] -mr-[400px] -mt-[400px]" />
+              <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-pink-500/20 rounded-full blur-[120px] -ml-[400px] -mb-[400px]" />
+           </div>
+           <div className="relative z-10 flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-white/20" />
+              <div className="w-3 h-3 rounded-full bg-white/20" />
+              <div className="w-3 h-3 rounded-full bg-white/60" />
+           </div>
+           
+           <div className="relative z-10 text-white max-w-lg mb-12">
+              <h2 className="text-5xl font-black tracking-tight mb-6 leading-tight">Your safe space<br/><span className="text-indigo-300 font-serif italic font-normal">reimagined.</span></h2>
+              <p className="text-slate-400 text-lg leading-relaxed font-medium">Join thousands of students accessing clinical-grade mental wellness tools and anonymous peer support tailored for campus life.</p>
+           </div>
+           
+           <div className="relative z-10 glass-panel !rounded-[2rem] p-6 bg-white/5 border border-white/10 backdrop-blur-md">
+              <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">🛡️</div>
+                 <div>
+                    <p className="text-white font-bold text-sm">Enterprise Security</p>
+                    <p className="text-slate-400 text-xs">HIPAA Compliant Infrastructure</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+
       </div>
     </div>
   );
+
+  if (hasGoogleAuth) {
+    return <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>{content}</GoogleOAuthProvider>;
+  }
+  return content;
 };
 
 export default Login;

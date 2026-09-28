@@ -17,6 +17,7 @@ import adminRoutes from './routes/admin.js';
 import assessmentRoutes from './routes/assessments.js';
 import videoRoutes from './routes/video.js';
 import notificationRoutes from './routes/notification.js';
+import communityGroupRoutes from './routes/communityGroups.js';
 import { connectToSocket } from './services/socketManager.js';
 
 dotenv.config();
@@ -61,7 +62,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api', apiRateLimiter);
 
 // Routes
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/resources', resourceRoutes);
@@ -69,10 +69,10 @@ app.use('/api/posts', postRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/connect', connectRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/assessments', assessmentRoutes); // ← ADD THIS
+app.use('/api/assessments', assessmentRoutes);
 app.use('/api/video', videoRoutes);
-app.use('/api/v1/users', videoRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/community-groups', communityGroupRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -90,12 +90,12 @@ app.use(errorHandler);
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/mental-health-platform')
   .then(() => {
-    console.log(`✅ MongoDB connected to ${process.env.MONGODB_URI }}`);
+    console.log(`✅ MongoDB connected to ${process.env.MONGODB_URI || 'mongodb://localhost:27017/mental-health-platform'}`);
     const PORT = process.env.PORT || 5000;
     const server = createServer(app);
     connectToSocket(server);
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT} $`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   })
   .catch((error) => {

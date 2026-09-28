@@ -36,7 +36,7 @@ const Icons = {
 const STUDENT_CARDS = [
   { to: '/check-in', Icon: Icons.CheckIn, title: 'Pulse Check', desc: 'Quick assessment of your mood and stress.', theme: 'bg-rose-50 text-rose-600' },
   { to: '/resources', Icon: Icons.Resources, title: 'Resource Library', desc: 'Guided wisdom tailored to your results.', theme: 'bg-blue-50 text-blue-600' },
-  { to: '/community', Icon: Icons.Community, title: 'Forum', desc: 'Heal together in our peer community.', theme: 'bg-teal-50 text-teal-600' },
+  { to: '/community', Icon: Icons.Community, title: 'Community Groups', desc: 'Join topic-based peer support spaces.', theme: 'bg-teal-50 text-teal-600' },
   { to: '/chatbot', Icon: Icons.Chat, title: 'AI Guide', desc: 'Instant support from our empathetic AI.', theme: 'bg-indigo-50 text-indigo-600' },
   { to: '/schedule', Icon: Icons.Bookings, title: 'My Schedule', desc: 'Your upcoming therapy appointments.', theme: 'bg-amber-50 text-amber-600' },
   { to: '/connect', Icon: Icons.Video, title: 'Connect', desc: 'Professional clinical interventions.', theme: 'bg-purple-50 text-purple-600' },
@@ -111,26 +111,28 @@ export default function Dashboard() {
             )}
 
             {/* Stats Row */}
-            {!loadingRes && results.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Total Activity</p>
-                  <p className="text-4xl font-black text-slate-900">{results.length}</p>
+            {!loadingRes && results.length > 0 && (() => {
+              const latest = results[0];
+              const severityParts = latest.severityTag ? latest.severityTag.split(',') : [];
+              const phqPart = severityParts.find(p => p.includes('PHQ-9'));
+              const moodLabel = phqPart ? phqPart.replace('PHQ-9:', '').trim() : '—';
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Check-ins Done</p>
+                    <p className="text-4xl font-black text-slate-900">{results.length}</p>
+                  </div>
+                  <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Mood (Latest)</p>
+                    <p className="text-2xl font-black text-indigo-600 leading-tight">{moodLabel}</p>
+                  </div>
+                  <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Last Check-in</p>
+                    <p className="text-2xl font-black text-slate-700">{daysSinceCheck === 0 ? 'Today' : `${daysSinceCheck}d ago`}</p>
+                  </div>
                 </div>
-                <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Completion Rate</p>
-                  <p className="text-4xl font-black text-slate-900">100%</p>
-                </div>
-                <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Mood Index</p>
-                  <p className="text-4xl font-black text-indigo-600">Stable</p>
-                </div>
-                <div className="glass-card flex flex-col items-center justify-center text-center p-6 bg-white/60">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Next Session</p>
-                  <p className="text-4xl font-black text-slate-300">—</p>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Action Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -435,7 +435,7 @@ const Connect = () => {
                      <div className="grid grid-cols-2 gap-4">
                         <div className="p-6 rounded-[2.5rem] bg-indigo-50/30 border border-indigo-50">
                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Total Touchpoints</p>
-                           <p className="text-4xl font-black text-indigo-600">{selectedStudentInsights.results?.length || 0}</p>
+                           <p className="text-4xl font-black text-indigo-600">{selectedStudentInsights.moodHistory?.length || 0}</p>
                         </div>
                         <div className="p-6 rounded-[2.5rem] bg-pink-50/30 border border-pink-50">
                            <p className="text-[10px] font-black uppercase tracking-widest text-pink-400 mb-2">Dominant Aura</p>
@@ -457,16 +457,16 @@ const Connect = () => {
                      <div className="pb-8">
                         <label className="block text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 mb-6">Screening History (Chronological)</label>
                         <div className="space-y-4">
-                           {selectedStudentInsights.results?.map((r, i) => (
+                           {selectedStudentInsights.moodHistory?.map((r, i) => (
                              <div key={i} className="flex justify-between items-center p-6 rounded-[2rem] bg-slate-50/50 border border-white hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all group">
                                 <div className="flex flex-col">
                                    <span className="text-[10px] font-black uppercase text-slate-300 tracking-widest mb-1">{new Date(r.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
                                    <span className="text-slate-700 font-black tracking-tight">{new Date(r.createdAt).toLocaleDateString(undefined, { day: 'numeric', weekday: 'short' })}</span>
                                 </div>
                                 <div className={`text-[10px] font-black uppercase px-6 py-2.5 rounded-full shadow-sm transition-all ${
-                                  r.severityTag.includes('Severe') ? 'bg-rose-500 text-white' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                  r.severityTag?.includes('Severe') ? 'bg-rose-500 text-white' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                                 }`}>
-                                   {r.severityTag}
+                                   {r.severityTag || 'Logged'}
                                 </div>
                              </div>
                            ))}

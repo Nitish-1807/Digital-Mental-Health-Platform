@@ -1,12 +1,14 @@
 import express from 'express';
 import { addToHistory, getUserHistory } from '../controllers/videoController.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, enforceCollegeAccess } from '../middleware/auth.js';
+import { roleCheck } from '../middleware/roleCheck.js';
 
 const router = express.Router();
 
-router.post('/add_to_activity', authenticate, addToHistory);
-router.get('/get_all_activity', authenticate, getUserHistory);
-router.post('/history', authenticate, addToHistory);
-router.get('/history', authenticate, getUserHistory);
+router.use(authenticate);
+router.use(enforceCollegeAccess);
+
+router.post('/history', roleCheck(['student', 'counselor']), addToHistory);
+router.get('/history', roleCheck(['student', 'counselor']), getUserHistory);
 
 export default router;

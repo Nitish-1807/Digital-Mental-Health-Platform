@@ -24,7 +24,7 @@ import JoinLobby from './pages/JoinLobby';
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Navbar />
         <ErrorBoundary>
           <Routes>
@@ -65,7 +65,7 @@ export default function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute allowedRoles={['student', 'counselor']}>
+                <ProtectedRoute allowedRoles={['student', 'counselor', 'admin']}>
                   <Dashboard />
                 </ProtectedRoute>
               }
@@ -117,7 +117,7 @@ export default function App() {
             <Route
               path="/community"
               element={
-                <ProtectedRoute allowedRoles={['student']}>
+                <ProtectedRoute allowedRoles={['student', 'counselor', 'admin']}>
                   <Community />
                 </ProtectedRoute>
               }

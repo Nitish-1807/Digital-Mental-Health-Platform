@@ -23,6 +23,21 @@ const postSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  groupId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CommunityGroup',
+    required: true,
+    index: true
+  },
+  isTriggerWarning: {
+    type: Boolean,
+    default: false
+  },
+  isPinned: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
   collegeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'College',
@@ -36,11 +51,16 @@ const postSchema = new mongoose.Schema({
   flagReason: {
     type: String
   },
+  status: {
+    type: String,
+    enum: ['active', 'pending_review', 'deleted'],
+    default: 'active'
+  },
   isActive: {
     type: Boolean,
     default: true
   },
-  likes: [{
+  supports: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }]
